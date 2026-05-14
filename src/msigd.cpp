@@ -151,6 +151,8 @@ static std::vector<identity_t> known_models =
 	{ MAG274QRX,         "00|", "V43", "MAG274QRX", LT_MYSTIC_OPTIX, true },
 	{ MD272QP,           "00\x85", "V51", "MD272QP", LT_NONE },                    // MAG274QRF-QD FW.011
 	{ MAG274QRFQD20,     "00\x9a", "V56", "MAG274QRF-QD (3CC2)", LT_MYSTIC_OPTIX }, // MAG274QRF-QD 2023 variant
+	// MSI Gaming Controller (vendor 0x1462, product 0x3fa4) - identified by p150=V69; p140 byte is non-ASCII/unknown
+	{ QUERYONLY,         "",      "V69", "MSI Gaming Controller (V69)", LT_STEEL },
 };
 
 enum encoding_t
@@ -1350,8 +1352,10 @@ steel_groups =
 static int steel_main(std_logger_t &logger, int argc, char **argv)
 {
 	logger.set_level(DEBUG, true);
-	//steeldev_t steeldev(logger, 0x1462, 0x3fa4, "MSI Gaming Controller");
-	steeldev_t steeldev(logger, 0x1038, 0x1126, "SteelSeries MLC", "");
+	// Try SteelSeries vendor first, then fall back to MSI Gaming Controller
+	steeldev_t steeldev_ss(logger, 0x1038, 0x1126, "SteelSeries MLC", "");
+	steeldev_t steeldev_msi(logger, 0x1462, 0x3fa4, "MSI Gaming Controller", "");
+	steeldev_t &steeldev = steeldev_ss ? steeldev_ss : steeldev_msi;
 	//part of the code may as well work on keyboards with per key led.
 	// Examples are GE63, GE73 with usb ids 1038:1122
 
@@ -1701,9 +1705,16 @@ int main (int argc, char **argv)
 
 		if (!usb.get_setting(sp140, s140) && !usb.get_setting(sp150, s150))
 		{
+			// First: exact match on both p140 and p150
 			for (auto &m : known_models)
 				if (m.p140 == s140 && m.p150 == s150)
 					series = m;
+
+			// Second: if still unknown, try matching on p150 alone (p140 empty = wildcard)
+			if (series.series == UNKNOWN)
+				for (auto &m : known_models)
+					if (m.p140.empty() && !m.p150.empty() && m.p150 == s150)
+						series = m;
 
 			if (series.series == UNKNOWN)
 			{
