@@ -152,7 +152,7 @@ static std::vector<identity_t> known_models =
 	{ MD272QP,           "00\x85", "V51", "MD272QP", LT_NONE },                    // MAG274QRF-QD FW.011
 	{ MAG274QRFQD20,     "00\x9a", "V56", "MAG274QRF-QD (3CC2)", LT_MYSTIC_OPTIX }, // MAG274QRF-QD 2023 variant
 	// MSI Gaming Controller (vendor 0x1462, product 0x3fa4) - identified by p150=V69; p140 byte is non-ASCII/unknown
-	{ QUERYONLY,         "",      "V69", "MSI Gaming Controller (V69)", LT_STEEL },
+	{ MPG27CQ,           "",      "V69", "MSI Gaming Controller (V69)", LT_STEEL },
 };
 
 enum encoding_t

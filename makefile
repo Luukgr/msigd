@@ -58,7 +58,10 @@ endif
 endif
 
 
-MAKEFILE_TARGETS_WITHOUT_INCLUDE := clean doc clang mingw nvcc
+PREFIX ?= /usr/local
+UDEVDIR ?= /etc/udev/rules.d
+
+MAKEFILE_TARGETS_WITHOUT_INCLUDE := clean doc clang mingw nvcc install uninstall
 
 #-------------------------------------------------
 # all
@@ -72,6 +75,20 @@ all:    depend $(TARGETS)
 
 clean:
 	$(RM) -rf $(OBJS) $(TARGETS) $(OBJ)/msigd.o .depend doxy/*
+
+#-------------------------------------------------
+# install / uninstall
+#-------------------------------------------------
+
+install: $(TARGETS)
+	install -Dm755 msigd $(DESTDIR)$(PREFIX)/bin/msigd
+	install -Dm644 udev/51-msi-gaming-device.rules $(DESTDIR)$(UDEVDIR)/51-msi-gaming-device.rules
+	udevadm control --reload-rules && udevadm trigger
+
+uninstall:
+	$(RM) $(DESTDIR)$(PREFIX)/bin/msigd
+	$(RM) $(DESTDIR)$(UDEVDIR)/51-msi-gaming-device.rules
+	udevadm control --reload-rules && udevadm trigger
 
 #-------------------------------------------------
 # msigd
